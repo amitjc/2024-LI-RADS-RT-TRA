@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LI-RADS Radiation TRA Assessment Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .ancillary-features {
+            margin-top: 20px;
+        }
+
+        .help-icon {
+            cursor: help;
+            color: #666;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LI-RADS Radiation TRA Assessment Tool</h1>
+
+    <!-- Liver Segment Information -->
+    <div class="section">
+        <h2>Liver Segment Location</h2>
+        <div class="form-group">
+            <label for="segmentLocation">Liver Segment(s) Involved:</label>
+            <input type="text" id="segmentLocation" required
+                   placeholder="Enter liver segment location (e.g., S6, S7)">
+        </div>
+    </div>
+
+    <!-- Pretreatment Data -->
+    <div class="section">
+        <h2>Pretreatment Measurements</h2>
+        <div class="form-group">
+            <label for="preTreatmentSize">Enhancing Component Size (mm):</label>
+            <input type="number" id="preTreatmentSize" step="any" required
+                   placeholder="Enter size in mm">
+        </div>
+    </div>
+
+    <!-- Post-Treatment Data -->
+    <div class="section">
+        <h2>Post-Treatment Measurements</h2>
+        <div class="form-group">
+            <label for="postTreatmentSize">Mass-like Enhancement Size (mm):</label>
+            <input type="number" id="postTreatmentSize" step="any" required
+                   placeholder="Enter size in mm">
+        </div>
+    </div>
+
+    <!-- Ancillary Features -->
+    <div class="section">
+        <h2>Ancillary Features Favoring Viability</h2>
+        <div class="form-group" style="display: flex; align-items: center; gap: 20px;"> 
+            <label style="display: inline-flex; align-items: center; margin-bottom: 0; font-weight: normal;"> <!-- Adjusted style -->
+                <input type="checkbox" id="diffusionRestriction" style="width: auto; margin-right: 5px;"> Diffusion Restriction
+            </label>
+            <label style="display: inline-flex; align-items: center; margin-bottom: 0; font-weight: normal;"> <!-- Adjusted style -->
+                <input type="checkbox" id="t2Hyperintensity" style="width: auto; margin-right: 5px;"> T2 Hyperintensity
+            </label>
+        </div>
+    </div>
+
+    <!-- Calculation Trigger and Result Display -->
+    <div class="section">
+        <button id="calculateButton" type="button">Calculate LR-TR Category</button>
+        <button id="previewButton" type="button" style="margin-left: 10px;">Preview Report</button> <!-- Added Preview Button -->
+        <div id="resultArea" style="margin-top: 20px; font-weight: bold;">
+            Calculated Category: <span id="calculatedCategory">---</span>
+        </div>
+        <div id="previewArea" style="margin-top: 20px; border: 1px solid #ccc; padding: 15px; background-color: #fff; display: none;"> <!-- Added Preview Area -->
+            <h3>Report Preview</h3>
+            <pre id="previewContent" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+        </div>
+        <button id="exportButton" type="button" style="margin-top: 15px;">Export to Word</button>
+    </div>
+
+    <!-- Include docx library from CDN -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+
+    <script src="script.js"></script>
+</body>
+</html>
