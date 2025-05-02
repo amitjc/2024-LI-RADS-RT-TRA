@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculatedCategorySpan = document.getElementById('calculatedCategory');
     const preTreatmentSizeInput = document.getElementById('preTreatmentSize');
     const postTreatmentSizeInput = document.getElementById('postTreatmentSize');
-    const diffusionRestrictionCheckbox = document.getElementById('diffusionRestriction');
-    const t2HyperintensityCheckbox = document.getElementById('t2Hyperintensity');
+    const diffusionRestrictionSelect = document.getElementById('diffusionRestriction'); // Changed ID and variable name
+    const t2HyperintensitySelect = document.getElementById('t2Hyperintensity'); // Changed ID and variable name
     const resultArea = document.getElementById('resultArea'); // To display errors
 
     calculateButton.addEventListener('click', function() {
@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get input values
         const preSizeStr = preTreatmentSizeInput.value;
         const postSizeStr = postTreatmentSizeInput.value;
-        const diffusionRestricted = diffusionRestrictionCheckbox.checked;
-        const t2Hyperintense = t2HyperintensityCheckbox.checked;
+        const diffusionRestrictionValue = diffusionRestrictionSelect.value; // Get value from select
+        const t2HyperintensityValue = t2HyperintensitySelect.value; // Get value from select
 
         // Basic Validation
         if (preSizeStr === '' || postSizeStr === '') {
@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (postSize > 0 && postSize <= preSize) {
             // Stable or decreased size, initially Non-progressing
             category = 'LR-TR Non-progressing';
-            // Check for upgrade based on ancillary features
-            if (diffusionRestricted || t2Hyperintense) {
+            // Check for upgrade based on ancillary features: "Increased" or "New" favor viability
+            if (['Increased', 'New'].includes(diffusionRestrictionValue) || ['Increased', 'New'].includes(t2HyperintensityValue)) {
                 category = 'LR-TR Viable'; // Upgrade to Viable
             }
         } else {
@@ -93,8 +93,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const location = segmentLocationInput.value || 'Not specified';
         const preSize = preTreatmentSizeInput.value || 'N/A';
         const postSize = postTreatmentSizeInput.value || 'N/A';
-        const diffusion = diffusionRestrictionCheckbox.checked ? 'Present' : 'Absent';
-        const t2 = t2HyperintensityCheckbox.checked ? 'Present' : 'Absent';
+        const diffusion = diffusionRestrictionSelect.value; // Use selected value
+        const t2 = t2HyperintensitySelect.value; // Use selected value
 
         // Use the docx library
         const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
@@ -164,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const location = segmentLocationInput.value || 'Not specified';
         const preSize = preTreatmentSizeInput.value || 'N/A';
         const postSize = postTreatmentSizeInput.value || 'N/A';
-        const diffusion = diffusionRestrictionCheckbox.checked ? 'Present' : 'Absent';
-        const t2 = t2HyperintensityCheckbox.checked ? 'Present' : 'Absent';
+        const diffusion = diffusionRestrictionSelect.value; // Use selected value
+        const t2 = t2HyperintensitySelect.value; // Use selected value
         const category = calculatedCategorySpan.textContent;
 
         // Ensure a category has been calculated first

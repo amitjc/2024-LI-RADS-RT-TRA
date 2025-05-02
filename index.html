@@ -86,13 +86,23 @@
     <!-- Ancillary Features -->
     <div class="section">
         <h2>Ancillary Features Favoring Viability</h2>
-        <div class="form-group" style="display: flex; align-items: center; gap: 20px;"> 
-            <label style="display: inline-flex; align-items: center; margin-bottom: 0; font-weight: normal;"> <!-- Adjusted style -->
-                <input type="checkbox" id="diffusionRestriction" style="width: auto; margin-right: 5px;"> Diffusion Restriction
-            </label>
-            <label style="display: inline-flex; align-items: center; margin-bottom: 0; font-weight: normal;"> <!-- Adjusted style -->
-                <input type="checkbox" id="t2Hyperintensity" style="width: auto; margin-right: 5px;"> T2 Hyperintensity
-            </label>
+        <div class="form-group">
+            <label for="diffusionRestriction">Diffusion Restriction:</label>
+            <select id="diffusionRestriction">
+                <option value="None">None</option>
+                <option value="Stable">Stable</option>
+                <option value="Increased">Increased</option>
+                <option value="New">New</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="t2Hyperintensity">T2 Hyperintensity:</label>
+            <select id="t2Hyperintensity">
+                <option value="None">None</option>
+                <option value="Stable">Stable</option>
+                <option value="Increased">Increased</option>
+                <option value="New">New</option>
+            </select>
         </div>
     </div>
 
