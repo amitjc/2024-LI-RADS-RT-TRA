@@ -3,26 +3,77 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculatedCategorySpan = document.getElementById('calculatedCategory');
     const preTreatmentSizeInput = document.getElementById('preTreatmentSize');
     const postTreatmentSizeInput = document.getElementById('postTreatmentSize');
-    const diffusionRestrictionSelect = document.getElementById('diffusionRestriction'); // Changed ID and variable name
-    const t2HyperintensitySelect = document.getElementById('t2Hyperintensity'); // Changed ID and variable name
+    const diffusionRestrictionSelect = document.getElementById('diffusionRestriction');
+    const t2HyperintensitySelect = document.getElementById('t2Hyperintensity');
+    const therapyModalitySelect = document.getElementById('therapyModality'); // New element
+    const lrtDateInput = document.getElementById('lrtDate'); // New element
+    const systemicTherapyWarning = document.getElementById('systemicTherapyWarning'); // New element
     const resultArea = document.getElementById('resultArea'); // To display errors
 
+    // --- Event Listener for Modality Change ---
+    therapyModalitySelect.addEventListener('change', function() {
+        const selectedModality = this.value;
+        if (selectedModality === 'Systemic') {
+            systemicTherapyWarning.style.display = 'block';
+            calculateButton.disabled = true;
+            calculatedCategorySpan.textContent = '---'; // Clear result if systemic is chosen
+            calculatedCategorySpan.style.color = 'inherit';
+             // Clear any previous error messages specifically related to calculation
+            const existingError = resultArea.querySelector('.error-message');
+            if (existingError) existingError.remove();
+            displayError('Calculation disabled: Systemic therapy selected. This tool is for radiation LRT.'); // Display specific info
+        } else {
+            systemicTherapyWarning.style.display = 'none';
+            calculateButton.disabled = false;
+             // Clear the systemic therapy warning message if present
+            const existingError = resultArea.querySelector('.error-message');
+            if (existingError && existingError.textContent.includes('Systemic therapy selected')) {
+                 existingError.remove();
+                 calculatedCategorySpan.textContent = '---'; // Reset category display
+                 calculatedCategorySpan.style.color = 'inherit';
+            }
+        }
+    });
+
     calculateButton.addEventListener('click', function() {
-        // Clear previous errors/results
-        calculatedCategorySpan.textContent = '---';
-        calculatedCategorySpan.style.color = 'inherit';
+        // Clear previous errors/results (except systemic warning)
         const existingError = resultArea.querySelector('.error-message');
+         if (existingError && !existingError.textContent.includes('Systemic therapy selected')) {
+             existingError.remove();
+         }
+         // Reset category display only if not showing systemic error
+         if (therapyModalitySelect.value !== 'Systemic') {
+            calculatedCategorySpan.textContent = '---';
+            calculatedCategorySpan.style.color = 'inherit';
+         }
+        // The existingError variable was already declared at the start of this listener.
+        // We just need to check if it exists and remove it if it does.
         if (existingError) {
             existingError.remove();
         }
 
         // Get input values
+        const therapyModality = therapyModalitySelect.value;
+        const lrtDateStr = lrtDateInput.value;
         const preSizeStr = preTreatmentSizeInput.value;
         const postSizeStr = postTreatmentSizeInput.value;
-        const diffusionRestrictionValue = diffusionRestrictionSelect.value; // Get value from select
-        const t2HyperintensityValue = t2HyperintensitySelect.value; // Get value from select
+        const diffusionRestrictionValue = diffusionRestrictionSelect.value;
+        const t2HyperintensityValue = t2HyperintensitySelect.value;
 
-        // Basic Validation
+        // --- Comprehensive Validation ---
+        if (therapyModality === '') {
+             displayError('Please select the therapy modality.');
+             return;
+        }
+        // Systemic check (redundant due to button disable, but safe)
+        if (therapyModality === 'Systemic') {
+             displayError('Calculation disabled: Systemic therapy selected.');
+             return;
+        }
+         if (lrtDateStr === '') {
+            displayError('Please enter the date of the latest LRT.');
+            return;
+        }
         if (preSizeStr === '' || postSizeStr === '') {
             displayError('Please enter both pre-treatment and post-treatment sizes.');
             return;
@@ -73,28 +124,93 @@ document.addEventListener('DOMContentLoaded', function() {
         errorDiv.style.marginTop = '10px';
         errorDiv.className = 'error-message'; // To help remove it later
 
-        // Add error message below the result span
-        resultArea.appendChild(errorDiv);
+        // Add error message below the result span, ensuring only one error message is present
+        const existingErrorMsg = resultArea.querySelector('.error-message');
+        if (!existingErrorMsg) { // Add only if no error message exists
+             resultArea.appendChild(errorDiv);
+        } else { // Replace existing error message content
+            existingErrorMsg.textContent = message;
+            existingErrorMsg.style.color = 'red'; // Ensure it's red
+        }
     }
+
+     // --- Helper Function to Calculate Time Since LRT ---
+     function calculateTimeSince(dateString) {
+        if (!dateString) return 'N/A';
+        try {
+            const lrtDate = new Date(dateString);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date to the beginning of the day
+            lrtDate.setHours(0, 0, 0, 0); // Normalize LRT date
+
+            if (isNaN(lrtDate.getTime())) return 'Invalid Date';
+            if (lrtDate > today) return 'Future Date';
+
+            let years = today.getFullYear() - lrtDate.getFullYear();
+            let months = today.getMonth() - lrtDate.getMonth();
+            let days = today.getDate() - lrtDate.getDate();
+
+            if (days < 0) {
+                months--;
+                // Get days in the previous month
+                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            let result = [];
+            if (years > 0) result.push(`${years} year${years > 1 ? 's' : ''}`);
+            if (months > 0) result.push(`${months} month${months > 1 ? 's' : ''}`);
+            // Only show days if the difference is less than a month or if years/months are zero
+            if (years === 0 && months === 0 || days > 0) {
+                 // Handle the case where the date is today
+                 if (years === 0 && months === 0 && days === 0 && lrtDate.getTime() === today.getTime()) {
+                     result.push("Today");
+                 } else if (days > 0) {
+                     result.push(`${days} day${days > 1 ? 's' : ''}`);
+                 }
+            }
+
+
+            return result.length > 0 ? result.join(', ') : 'Today';
+        } catch (e) {
+            console.error("Error calculating time since LRT:", e);
+            return 'Calculation Error';
+        }
+    }
+
 
     // --- Export to Word Functionality ---
     const exportButton = document.getElementById('exportButton');
     const segmentLocationInput = document.getElementById('segmentLocation'); // Need this input
 
     exportButton.addEventListener('click', function() {
-        // Ensure a category has been calculated first
+        // Ensure a category has been calculated first (and modality is not Systemic)
         const category = calculatedCategorySpan.textContent;
+        const selectedModality = therapyModalitySelect.value;
+
+        if (selectedModality === 'Systemic') {
+             alert('Cannot export report for Systemic therapy using this tool.');
+             return;
+        }
         if (category === '---' || category === 'Error') {
-            alert('Please calculate the LR-TR category before exporting.');
+            alert('Please calculate a valid LR-TR category before exporting.');
             return;
         }
 
         // Get all input values for the report
         const location = segmentLocationInput.value || 'Not specified';
+        const modalityText = therapyModalitySelect.options[therapyModalitySelect.selectedIndex].text; // Get full text
+        const lrtDate = lrtDateInput.value || 'N/A';
+        const timeSinceLRT = calculateTimeSince(lrtDate);
         const preSize = preTreatmentSizeInput.value || 'N/A';
         const postSize = postTreatmentSizeInput.value || 'N/A';
-        const diffusion = diffusionRestrictionSelect.value; // Use selected value
-        const t2 = t2HyperintensitySelect.value; // Use selected value
+        const diffusion = diffusionRestrictionSelect.value;
+        const t2 = t2HyperintensitySelect.value;
 
         // Use the docx library
         const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
@@ -119,6 +235,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     new Paragraph({ text: "Patient/Lesion Information:", heading: HeadingLevel.HEADING_1 }),
                     new Paragraph({ text: `Liver Segment(s) Involved: ${location}` }),
+                    new Paragraph({ text: "" }),
+
+                    new Paragraph({ text: "Therapy Information:", heading: HeadingLevel.HEADING_1 }), // New Section
+                    new Paragraph({ text: `Modality of Latest Therapy: ${modalityText}` }),
+                    new Paragraph({ text: `Date of Latest LRT: ${lrtDate === 'N/A' ? 'N/A' : new Date(lrtDate).toLocaleDateString()}` }), // Format date nicely
+                    new Paragraph({ text: `Time Since Latest LRT: ${timeSinceLRT}` }),
                     new Paragraph({ text: "" }),
 
                     new Paragraph({ text: "Measurements:", heading: HeadingLevel.HEADING_1 }),
@@ -162,15 +284,23 @@ document.addEventListener('DOMContentLoaded', function() {
     previewButton.addEventListener('click', function() {
         // Get all input values for the report
         const location = segmentLocationInput.value || 'Not specified';
+        const modalityText = therapyModalitySelect.options[therapyModalitySelect.selectedIndex].text;
+        const lrtDate = lrtDateInput.value || 'N/A';
+        const timeSinceLRT = calculateTimeSince(lrtDate);
         const preSize = preTreatmentSizeInput.value || 'N/A';
         const postSize = postTreatmentSizeInput.value || 'N/A';
-        const diffusion = diffusionRestrictionSelect.value; // Use selected value
-        const t2 = t2HyperintensitySelect.value; // Use selected value
+        const diffusion = diffusionRestrictionSelect.value;
+        const t2 = t2HyperintensitySelect.value;
         const category = calculatedCategorySpan.textContent;
+        const selectedModality = therapyModalitySelect.value;
 
-        // Ensure a category has been calculated first
+        // Ensure a category has been calculated first (and modality is not Systemic)
+         if (selectedModality === 'Systemic') {
+             alert('Cannot preview report for Systemic therapy using this tool.');
+             return;
+        }
         if (category === '---' || category === 'Error') {
-            alert('Please calculate the LR-TR category before previewing.');
+            alert('Please calculate a valid LR-TR category before previewing.');
             return;
         }
 
@@ -179,6 +309,10 @@ document.addEventListener('DOMContentLoaded', function() {
         previewText += `Date: ${new Date().toLocaleDateString()}\n\n`;
         previewText += "Patient/Lesion Information:\n";
         previewText += `Liver Segment(s) Involved: ${location}\n\n`;
+        previewText += "Therapy Information:\n"; // New Section
+        previewText += `Modality of Latest Therapy: ${modalityText}\n`;
+        previewText += `Date of Latest LRT: ${lrtDate === 'N/A' ? 'N/A' : new Date(lrtDate).toLocaleDateString()}\n`; // Format date
+        previewText += `Time Since Latest LRT: ${timeSinceLRT}\n\n`;
         previewText += "Measurements:\n";
         previewText += `Pre-treatment Enhancing Component Size: ${preSize} mm\n`;
         previewText += `Post-treatment Mass-like Enhancement Size: ${postSize} mm\n\n`;
